@@ -27,7 +27,7 @@ public class DataInitializer {
 
     @Test
     void initialize() throws InterruptedException {
-        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        ExecutorService executorService = Executors.newFixedThreadPool(5);
         for (int i = 0; i < EXECUTE_COUNT; i++) {
             executorService.submit(() -> {
                 insert();

@@ -5,7 +5,11 @@ import kuke.board.article.service.response.ArticleResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArticleApiTest {
     RestClient restClient = RestClient.create("http://localhost:9000");
@@ -41,9 +45,23 @@ public class ArticleApiTest {
     @Test
     void readAllTest() {
         ArticlePageResponse response = readAll(1L, 5000L, 30L);
-        System.out.println("readAll response = " + response);
         for (ArticleResponse article : response.getArticles()) {
             System.out.println("articleId = " + article.getArticleId());
+        }
+    }
+
+    @Test
+    void readAllInfiniteScrollTest() {
+        List<ArticleResponse> response = readAllInfiniteScroll(1L, 30L, null);
+        for (ArticleResponse article : response) {
+            System.out.println("articleId = " + article.getArticleId());
+        }
+
+        Long lastArticleId = response.getLast().getArticleId();
+        System.out.println("lastArticleId = " + lastArticleId);
+        List<ArticleResponse> result = readAllInfiniteScroll(1L, 30L, lastArticleId);
+        for (ArticleResponse article : result) {
+            System.out.println("articleId2 = " + article.getArticleId());
         }
     }
 
@@ -82,6 +100,18 @@ public class ArticleApiTest {
                 .uri(uri)
                 .retrieve()
                 .body(ArticlePageResponse.class);
+    }
+
+    List<ArticleResponse> readAllInfiniteScroll(Long boardId, Long pageSize, Long lastArticleId) {
+        String uri = "/v1/articles/infinite-scroll?" + "boardId=" + boardId + "&pageSize=" + pageSize;
+        if (lastArticleId != null) {
+            uri = uri + "&lastArticleId=" + lastArticleId;
+        }
+        return restClient.get()
+                .uri(uri)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<ArticleResponse>>() {
+                });
     }
 
     @Getter
